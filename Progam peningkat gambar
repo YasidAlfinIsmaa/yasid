@@ -1,0 +1,70 @@
+import cv2 
+import numpy as np 
+from matplotlib import pyplot as plt 
+import tkinter as tk 
+from tkinter import filedialog 
+from PIL import Image, ImageTk 
+
+def histogram_equalization(img): 
+    img_yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)  # Konversi ke ruang warna YUV 
+    img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])  # Equalisasi histogram pada channel Y
+(Luminance) 
+    return cv2.cvtColor(img_yuv, cv2.COLOR_YUV2BGR)  # Konversi kembali ke BGR 
+
+ def reduce_noise(img): 
+    return cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 21) 
+
+def sharpen_image(img): 
+    kernel = np.array([[0, -1, 0],  
+                       [-1, 5, -1],  
+                       [0, -1, 0]])  # Kernel untuk efek penajaman 
+    return cv2.filter2D(img, -1, kernel) 
+
+def process_image(image_path): 
+    img = cv2.imread(image_path)  # Membaca gambar dari path 
+    enhanced_img = histogram_equalization(img)  # Peningkatan kontras 
+    denoised_img = reduce_noise(enhanced_img)  # Pengurangan noise 
+    sharpened_img = sharpen_image(denoised_img)  # Penajaman gambar 
+
+
+    return img, sharpened_img  # Mengembalikan gambar asli dan hasil 
+
+ def open_image(): 
+    file_path = filedialog.askopenfilename()  # Dialog untuk memilih file 
+    if file_path:  # Jika file dipilih 
+        original, processed = process_image(file_path)  # Proses gambar 
+        display_images(original, processed)  # Tampilkan gambar di GUI 
+
+def display_images(original, processed): 
+    original = cv2.cvtColor(original, cv2.COLOR_BGR2RGB)  # Konversi ke RGB 
+    processed = cv2.cvtColor(processed, cv2.COLOR_BGR2RGB) 
+
+ 
+
+    original = Image.fromarray(original)  # Konversi ke format Pillow 
+    processed = Image.fromarray(processed) 
+
+ 
+
+    original = ImageTk.PhotoImage(original)  # Konversi ke format Tkinter 
+    processed = ImageTk.PhotoImage(processed) 
+
+ 
+
+    label_original.config(image=original)  # Tampilkan gambar asli 
+    label_original.image = original 
+    label_processed.config(image=processed)  # Tampilkan gambar hasil 
+    label_processed.image = processed 
+
+root = tk.Tk() 
+root.title("Image Enhancement App") 
+
+btn_open = tk.Button(root, text="Open Image", command=open_image) 
+btn_open.pack() 
+
+ label_original = tk.Label(root) 
+label_original.pack(side="left") 
+label_processed = tk.Label(root) 
+label_processed.pack(side="right") 
+
+root.mainloop() 
